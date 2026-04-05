@@ -77,6 +77,22 @@ FraudShieldAI/
 
 ---
 
+## Screenshots
+
+### Predict — Real-time fraud scoring with risk badges
+![Predict Page](docs/screenshots/predict.png)
+
+### Predict — Per-transaction SHAP explanation
+![SHAP Waterfall](docs/screenshots/shap.png)
+
+### Dashboard — Fraud trend analytics
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Model Report — Metrics comparison + SHAP feature importance
+![Model Report](docs/screenshots/model_report.png)
+
+---
+
 ## Dataset
 
 **Source:** [Credit Card Transactions Fraud Detection Dataset — Kaggle](https://www.kaggle.com/datasets/kartik2112/fraud-detection)
