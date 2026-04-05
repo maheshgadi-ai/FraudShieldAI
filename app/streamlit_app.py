@@ -82,7 +82,7 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown(
-        "<small>Capstone Project · 2024<br>"
+        "<small>Capstone Project · 2025<br>"
         "Models: LR · RF · XGBoost · FNN · LSTM · Ensemble</small>",
         unsafe_allow_html=True,
     )
