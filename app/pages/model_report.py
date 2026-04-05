@@ -15,7 +15,6 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
-from PIL import Image
 
 METRICS_DIR = Path("outputs/metrics")
 PLOTS_DIR   = Path("outputs/plots")
@@ -45,8 +44,7 @@ def _load_metrics() -> pd.DataFrame | None:
 
 def _show_image(path: Path, caption: str = "") -> None:
     if path.exists():
-        img = Image.open(path)
-        st.image(img, caption=caption, use_container_width=True)
+        st.image(str(path), caption=caption, use_column_width=True)
     else:
         st.caption(f"*Plot not found: {path.name}*")
 
