@@ -1,9 +1,17 @@
-# Data — never commit raw/processed data to git
+# Raw data — too large for GitHub (335MB + 143MB)
 data/raw/
+
+# Processed data — too large (67MB parquet files)
 data/processed/
 
-# Model outputs
-outputs/
+# Large model artifacts — too large for GitHub (>100MB)
+outputs/models/X_seq_test.joblib
+outputs/models/X_test.joblib
+outputs/models/ensemble.joblib
+outputs/models/random_forest.joblib
+outputs/models/card_indices_train.joblib
+outputs/models/card_indices_test.joblib
+outputs/models/y_test.joblib
 
 # Python
 __pycache__/
