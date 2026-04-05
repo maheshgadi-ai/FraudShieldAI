@@ -98,21 +98,24 @@ def _label_encode(
 def _target_encode(
     train: pd.DataFrame,
     test: pd.DataFrame,
-    target_col: str,
+    y_train: pd.Series,
     smoothing: float = 10.0,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, pd.Series]]:
     """
     Smoothed target (mean) encoding.
     Encoded value = (n_i * mean_i + smoothing * global_mean) / (n_i + smoothing)
     Unseen categories in test get the global mean.
+
+    Args:
+        y_train: Target series (already separated from train DataFrame).
     """
     encodings: dict[str, pd.Series] = {}
-    global_mean = train[target_col].mean()
+    global_mean = float(y_train.mean())
 
     for col in _TARGET_ENCODE_COLS:
         if col not in train.columns:
             continue
-        stats = train.groupby(col)[target_col].agg(["count", "mean"])
+        stats = y_train.groupby(train[col]).agg(["count", "mean"])
         smooth = (stats["count"] * stats["mean"] + smoothing * global_mean) / (
             stats["count"] + smoothing
         )
@@ -210,10 +213,8 @@ def run_preprocessing(cfg: dict) -> None:
     with Timer("encoding"):
         train_feat, test_feat, label_encoders = _label_encode(train_feat, test_feat)
         train_feat, test_feat, target_encoders = _target_encode(
-            train_feat, test_feat, target_col=target,
+            train_feat, test_feat, y_train=y_train,
         )
-        # Re-attach target after target encoding helper used it from df
-        # (target column was temporarily in df for computing stats)
 
     # Encode cc_num as integer hash (anonymised, keeps cardinality low)
     if "cc_num" in train_feat.columns:

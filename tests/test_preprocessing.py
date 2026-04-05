@@ -85,39 +85,38 @@ class TestLabelEncode:
 
 class TestTargetEncode:
     def test_target_encode_cols_become_float(self, raw_df):
-        # Need is_fraud present during encoding
         train = raw_df.copy()
         test  = raw_df.copy()
-        train_out, test_out, _ = _target_encode(train, test, target_col="is_fraud")
+        y     = train.pop("is_fraud")
+        test.pop("is_fraud")
+        train_out, test_out, _ = _target_encode(train, test, y_train=y)
         for col in _TARGET_ENCODE_COLS:
             if col in train_out.columns:
                 assert train_out[col].dtype in (np.float32, np.float64)
 
     def test_no_nulls_after_encoding(self, raw_df):
-        train, test, _ = _target_encode(raw_df.copy(), raw_df.copy(), "is_fraud")
+        train = raw_df.copy()
+        test  = raw_df.copy()
+        y     = train.pop("is_fraud")
+        test.pop("is_fraud")
+        train_out, test_out, _ = _target_encode(train, test, y_train=y)
         for col in _TARGET_ENCODE_COLS:
-            if col in train.columns:
-                assert train[col].notna().all()
-                assert test[col].notna().all()
+            if col in train_out.columns:
+                assert train_out[col].notna().all()
+                assert test_out[col].notna().all()
 
     def test_unseen_category_gets_global_mean(self):
-        train = pd.DataFrame({
-            "category": ["A", "A", "B", "B"],
-            "is_fraud": [0, 1, 0, 0],
-        })
-        test = pd.DataFrame({
-            "category": ["C"],   # unseen
-            "is_fraud": [0],
-        })
-        # Temporarily limit target encode to just 'category'
+        train = pd.DataFrame({"category": ["A", "A", "B", "B"]})
+        test  = pd.DataFrame({"category": ["C"]})   # unseen
+        y     = pd.Series([0, 1, 0, 0], name="is_fraud")
+
         import src.data.preprocessing as prep
         old = prep._TARGET_ENCODE_COLS
         prep._TARGET_ENCODE_COLS = ["category"]
-        _, test_out, _ = prep._target_encode(train, test, "is_fraud")
+        _, test_out, _ = prep._target_encode(train, test, y_train=y)
         prep._TARGET_ENCODE_COLS = old
 
-        global_mean = train["is_fraud"].mean()
-        # Unseen "C" should map close to the global mean (exact value depends on smoothing)
+        global_mean = float(y.mean())
         assert test_out["category"].iloc[0] == pytest.approx(global_mean, abs=0.2)
 
 
