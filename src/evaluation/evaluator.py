@@ -229,13 +229,17 @@ def _shap_deep(model, X: np.ndarray, model_name: str, shap_dir: Path) -> None:
     try:
         explainer = shap.GradientExplainer(wrapped, X_bg)
         shap_values = explainer.shap_values(X_ex)
+
+        # Normalise to numpy array — SHAP may return a list or nested structure
         if isinstance(shap_values, list):
             shap_values = shap_values[0]
-        # shap_values shape: (n_explain, seq_len_or_features, 1) → squeeze last dim
-        if isinstance(shap_values, np.ndarray) and shap_values.ndim == 3 and shap_values.shape[-1] == 1:
+        shap_values = np.array(shap_values, dtype=np.float32)
+
+        # Drop trailing size-1 dim from the unsqueeze wrapper: (..., 1) → (...)
+        if shap_values.ndim >= 2 and shap_values.shape[-1] == 1:
             shap_values = shap_values.squeeze(-1)
 
-        # For LSTM sequences (3-D), average across the sequence dimension
+        # For LSTM sequences (3-D after squeeze): average across the time dimension
         if shap_values.ndim == 3:
             shap_values = shap_values.mean(axis=1)
             X_display = X[ex_idx].mean(axis=1)
