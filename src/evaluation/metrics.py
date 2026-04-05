@@ -120,6 +120,8 @@ def build_metrics_table(all_metrics: list[dict[str, Any]]) -> pd.DataFrame:
     Sorted by AUC-PR descending (primary metric).
     """
     df = pd.DataFrame(all_metrics)
+    if df.empty or "auc_pr" not in df.columns:
+        return df
     display_cols = [
         "model", "auc_pr", "auc_roc", "f1", "precision", "recall", "mcc", "threshold"
     ]

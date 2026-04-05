@@ -161,20 +161,25 @@ class TestScaleFeatures:
 class TestApplySmote:
     def _imbalanced(self) -> tuple[pd.DataFrame, pd.Series]:
         rng = np.random.default_rng(1)
-        X = pd.DataFrame(rng.standard_normal((100, 5)), columns=list("abcde"))
-        y = pd.Series(np.where(rng.random(100) < 0.05, 1, 0), name="is_fraud")
+        # 200 samples, 10 fraud (5%) — enough for SMOTE's k_neighbors=5 default
+        # and low enough that sampling_strategy=0.2 actually generates new samples
+        X = pd.DataFrame(rng.standard_normal((200, 5)), columns=list("abcde"))
+        y_arr = np.zeros(200, dtype=int)
+        y_arr[:10] = 1
+        rng.shuffle(y_arr)
+        y = pd.Series(y_arr, name="is_fraud")
         return X, y
 
     def test_minority_class_increases(self):
         X, y = self._imbalanced()
         n_fraud_before = int(y.sum())
-        cfg = {"enabled": True, "sampling_strategy": 0.1, "random_state": 42}
+        cfg = {"enabled": True, "sampling_strategy": 0.2, "random_state": 42}
         X_res, y_res = _apply_smote(X, y, cfg)
         assert int(y_res.sum()) > n_fraud_before
 
     def test_returns_dataframe_and_series(self):
         X, y = self._imbalanced()
-        cfg = {"enabled": True, "sampling_strategy": 0.1, "random_state": 42}
+        cfg = {"enabled": True, "sampling_strategy": 0.2, "random_state": 42}
         X_res, y_res = _apply_smote(X, y, cfg)
         assert isinstance(X_res, pd.DataFrame)
         assert isinstance(y_res, pd.Series)
@@ -188,6 +193,6 @@ class TestApplySmote:
 
     def test_column_names_preserved(self):
         X, y = self._imbalanced()
-        cfg = {"enabled": True, "sampling_strategy": 0.1, "random_state": 42}
+        cfg = {"enabled": True, "sampling_strategy": 0.2, "random_state": 42}
         X_res, _ = _apply_smote(X, y, cfg)
         assert list(X_res.columns) == list(X.columns)
