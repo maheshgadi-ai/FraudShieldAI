@@ -213,15 +213,27 @@ def _shap_deep(model, X: np.ndarray, model_name: str, shap_dir: Path) -> None:
     nn_model.eval()
     device = model.device
 
+    # GradientExplainer needs the model to return 2-D output (batch, 1).
+    # FNN/LSTM squeeze to 1-D, so wrap them.
+    class _Unsqueeze(torch.nn.Module):
+        def __init__(self, base): super().__init__(); self.base = base
+        def forward(self, x): return self.base(x).unsqueeze(1)
+
+    wrapped = _Unsqueeze(nn_model).to(device)
+    wrapped.eval()
+
     # GradientExplainer requires 2-D or 3-D tensors
     X_bg = torch.tensor(X[bg_idx], dtype=torch.float32).to(device)
     X_ex = torch.tensor(X[ex_idx], dtype=torch.float32).to(device)
 
     try:
-        explainer = shap.GradientExplainer(nn_model, X_bg)
+        explainer = shap.GradientExplainer(wrapped, X_bg)
         shap_values = explainer.shap_values(X_ex)
         if isinstance(shap_values, list):
             shap_values = shap_values[0]
+        # shap_values shape: (n_explain, seq_len_or_features, 1) → squeeze last dim
+        if isinstance(shap_values, np.ndarray) and shap_values.ndim == 3 and shap_values.shape[-1] == 1:
+            shap_values = shap_values.squeeze(-1)
 
         # For LSTM sequences (3-D), average across the sequence dimension
         if shap_values.ndim == 3:
