@@ -67,9 +67,9 @@ def _load_raw(cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     test_path = Path(cfg["data"]["raw_test_path"])
 
     logger.info("Loading training data from %s", train_path)
-    train = pd.read_csv(train_path)
+    train = pd.read_csv(train_path, index_col=0)
     logger.info("Loading test data from %s", test_path)
-    test = pd.read_csv(test_path)
+    test = pd.read_csv(test_path, index_col=0)
 
     logger.info("Train shape: %s | Test shape: %s", train.shape, test.shape)
     return train, test
