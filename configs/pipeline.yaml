@@ -1,0 +1,28 @@
+data:
+  raw_train_path: "data/raw/fraudTrain.csv"
+  raw_test_path: "data/raw/fraudTest.csv"
+  processed_train_path: "data/processed/train.parquet"
+  processed_test_path: "data/processed/test.parquet"
+  target_column: "is_fraud"
+  random_seed: 42
+
+feature_engineering:
+  velocity_windows: [1, 7, 30]          # days for transaction velocity
+  geo_distance: true                     # compute haversine distance cardholder↔merchant
+  time_features: true                    # hour, day_of_week, is_weekend
+  spending_features: true                # rolling mean/std of spend per card
+
+preprocessing:
+  test_size: 0.2
+  stratify: true
+  smote:
+    enabled: true
+    sampling_strategy: 0.1              # minority:majority ratio after oversampling
+    random_state: 42
+  scaling: "standard"                   # standard | minmax | robust
+
+training:
+  output_dir: "outputs/models"
+  metrics_dir: "outputs/metrics"
+  plots_dir: "outputs/plots"
+  shap_dir: "outputs/shap"

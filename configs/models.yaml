@@ -1,0 +1,97 @@
+logistic_regression:
+  enabled: true
+  params:
+    C: 1.0
+    max_iter: 1000
+    class_weight: "balanced"
+    solver: "lbfgs"
+    random_state: 42
+  tuning:
+    method: "optuna"
+    n_trials: 30
+    param_space:
+      C: [0.001, 100.0]               # log-uniform
+      max_iter: [500, 2000]
+
+random_forest:
+  enabled: true
+  params:
+    n_estimators: 300
+    max_depth: 15
+    min_samples_split: 5
+    min_samples_leaf: 2
+    class_weight: "balanced"
+    n_jobs: -1
+    random_state: 42
+  tuning:
+    method: "optuna"
+    n_trials: 30
+    param_space:
+      n_estimators: [100, 500]
+      max_depth: [5, 30]
+      min_samples_split: [2, 20]
+      min_samples_leaf: [1, 10]
+
+xgboost:
+  enabled: true
+  params:
+    n_estimators: 500
+    max_depth: 8
+    learning_rate: 0.05
+    subsample: 0.8
+    colsample_bytree: 0.8
+    scale_pos_weight: 10             # handles class imbalance
+    use_label_encoder: false
+    eval_metric: "aucpr"
+    random_state: 42
+    n_jobs: -1
+  tuning:
+    method: "optuna"
+    n_trials: 50
+    param_space:
+      n_estimators: [200, 1000]
+      max_depth: [3, 12]
+      learning_rate: [0.01, 0.3]     # log-uniform
+      subsample: [0.6, 1.0]
+      colsample_bytree: [0.6, 1.0]
+
+fnn:
+  enabled: true
+  architecture:
+    hidden_layers: [256, 128, 64]
+    dropout: 0.3
+    batch_norm: true
+    activation: "relu"
+  training:
+    epochs: 50
+    batch_size: 2048
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    pos_weight: 10.0                 # BCEWithLogitsLoss weight for minority class
+    early_stopping_patience: 7
+    scheduler: "cosine"
+
+lstm:
+  enabled: true
+  sequence_length: 10                # number of past transactions per sequence
+  architecture:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+    bidirectional: false
+  training:
+    epochs: 40
+    batch_size: 1024
+    learning_rate: 0.001
+    weight_decay: 0.0001
+    pos_weight: 10.0
+    early_stopping_patience: 7
+    scheduler: "cosine"
+
+ensemble:
+  enabled: true
+  method: "soft_voting"              # soft_voting | stacking
+  models: ["logistic_regression", "random_forest", "xgboost", "fnn", "lstm"]
+  stacking:
+    meta_learner: "logistic_regression"
+    cv_folds: 5
